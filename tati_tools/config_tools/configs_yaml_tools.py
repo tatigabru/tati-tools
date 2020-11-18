@@ -1,10 +1,11 @@
 import os
 import yaml
-from typing import Dict, List
 
 
 def update_dict(d: dict, params: dict) -> dict:
+    """Overwrite config parameters"""
     print("Overwriting config parameters:")
+
     for k, v in params.items():
         *path, key = k.split(".")
         inner_dict = d
@@ -12,7 +13,8 @@ def update_dict(d: dict, params: dict) -> dict:
             inner_dict = inner_dict[path_key]
         old_v = inner_dict.get(key)
         inner_dict[key] = v
-        print(f"    ", f"{k} ".ljust(50, "."), f"{old_v} -> {v}")
+        print(f"{k} ".ljust(50, "."), f"{old_v} -> {v}")
+        
     return d
 
 

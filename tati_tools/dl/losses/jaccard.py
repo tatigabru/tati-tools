@@ -5,11 +5,7 @@ Adapted from:
     Source: https://github.com/BloodAxe/pytorch-toolbelt/blob/develop/pytorch_toolbelt/losses/
     Author: E. Khvedchenya (BloodAxe)
 """
-from typing import List
-
 import torch
-from torch import Tensor
-from torch import nn
 import torch.nn.functional as F
 from torch import Tensor
 from torch.nn.modules.loss import _Loss
