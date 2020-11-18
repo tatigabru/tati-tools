@@ -11,16 +11,15 @@ NUM_CLASSES = 2
 
 def binary_iou_numpy(output: Tensor, target: Tensor, from_logits: bool = True) -> float:
     """
-    Batch images IoUs for a  binary segmentation  
-    Args: 
-        output: model output as a torch.Tensor 
+    Batch images IoUs for a  binary segmentation
+    Args:
+        output: model output as a torch.Tensor
         target: true masks as a torch.Tensor
-    """    
+    """
     if from_logits:
-        # binary output
+        # Binary output
         output = torch.sigmoid(output)
-        output.round() #output.cuda().round()
-        
+        output.round()  # output.cuda().round()
     output = np.asarray(output.detach().cpu().numpy())
     target = np.asarray(target.detach().cpu().numpy())
     if output.ndim == 4:
@@ -32,8 +31,8 @@ def binary_iou_numpy(output: Tensor, target: Tensor, from_logits: bool = True) -
     # Compute area intersection:
     intersection = (output * target).sum()
     # Union, sums ones excluding batch dimension
-    union = output.sum() + target.sum() - intersection 
-    iou = intersection / (union + SMOOTH)  
+    union = output.sum() + target.sum() - intersection
+    iou = intersection / (union + SMOOTH)
     iou_mean: float = iou.mean()
 
     return iou_mean
@@ -43,19 +42,19 @@ def binary_iou_pytorch(output: Tensor, target: Tensor, from_logits: bool = True)
     #  BATCH x 1 x H x W shape
     if output.ndim == 4:
         output = output.squeeze(1)  # BATCH x 1 x H x W => BATCH x H x W
-    if target.ndim == 4:    
+    if target.ndim == 4:
         target = target.squeeze(1)
     # Remove background
     target = (target == 1).type_as(output)
     if from_logits:
-        # binary output
+        # Binary output
         output = torch.sigmoid(output)
-        output.round() #output.cuda().round()
+        output.round()  # output.cuda().round()
     # Compute area intersection:
     intersection = torch.sum(output * target)
     # Union, sums ones excluding batch dimension
-    union = torch.sum(output + target) - intersection 
-    iou = intersection / (union + SMOOTH)  
+    union = torch.sum(output + target) - intersection
+    iou = intersection / (union + SMOOTH)
     iou_mean: float = iou.mean()
 
     return iou_mean
@@ -72,7 +71,7 @@ def test_iou():
     print(f'iou pytorch: {iou_torch}')
     assert abs(iou_torch - 0.5) < 0.01
 
-    
+
 def official_pixel_acc(output: Tensor, target: Tensor) -> Tuple[float, int, int]:
     """
     Official pixel accuracy
@@ -86,24 +85,23 @@ def official_pixel_acc(output: Tensor, target: Tensor) -> Tuple[float, int, int]
     """
     output = np.asarray(output)
     target = np.asarray(target)
-	# Remove classes from unlabeled pixels in gt image	
     pixel_labeled: int = np.sum(target > 0)
-    pixel_correct: int = np.sum((output==target)*(target > 0))
+    pixel_correct: int = np.sum((output == target) * (target > 0))
     pixel_accuracy: float = 1.0 * pixel_correct / pixel_labeled
 
     return (pixel_accuracy, pixel_correct, pixel_labeled)
 
-    
-def pixel_acc(output: Tensor, target: Tensor, ignore_index:int = 0) -> float:
+
+def pixel_acc(output: Tensor, target: Tensor, ignore_index: int = 0) -> float:
     """Calculate pixel accuracy between model prediction and target
        Args:
            output (torch.tensor): model output of shape (B,C,H,W);
                 each class in one channel (C == n_classes)
            target (torch.tensor): target tensor of shape (B,H,W);
-                class objects encoded by unique values        
+                class objects encoded by unique values
     """
     mask = (target != ignore_index)
-    #output = torch.argmax(output, dim=1)
+    # output = torch.argmax(output, dim=1)
     correct = (target == output)
     accuracy: float = (correct * mask).sum().float() / mask.sum()
     
@@ -112,10 +110,10 @@ def pixel_acc(output: Tensor, target: Tensor, ignore_index:int = 0) -> float:
 
 def pytorch_iou(output: torch.tensor, target: torch.tensor, num_class: int = NUM_CLASSES) -> Tuple[Any, Any]:
     """
-    PyTorch metric from official metric as in 
+    PyTorch metric from official metric as in
     https://github.com/CSAILVision/sceneparsing/blob/master/evaluationCode/utils_eval.py
     """
-	# Remove classes from unlabeled pixels in gt image
+    # Remove classes from unlabeled pixels in gt image
     output = output * (target > 0)
     # Compute area intersection:
     intersection = output * (output == target)
@@ -124,7 +122,7 @@ def pytorch_iou(output: torch.tensor, target: torch.tensor, num_class: int = NUM
     area_pred = torch.histc(output, bins=num_class, min=1, max=num_class)
     area_lab = torch.histc(target, bins=num_class, min=1, max=num_class)
     area_union = area_pred + area_lab - area_intersection
-        
+
     return (area_intersection, area_union)
     
 
@@ -135,21 +133,21 @@ def official_iou(output: torch.tensor, target: torch.tensor, numClass: int = NUM
     
     This function takes the prediction and label of a single image, returns intersection and union areas for each class
     To compute over many images do:
-    for i in range(Nimages):
-    	(area_intersection[:,i], area_union[:,i]) = intersectionAndUnion(imPred[i], imLab[i])
+    for i in range(Nimages): 
+        (area_intersection[:,i], area_union[:,i]) = intersectionAndUnion(imPred[i], imLab[i])
     IoU = 1.0 * np.sum(area_intersection, axis=1) / np.sum(np.spacing(1)+area_union, axis=1)
     """
-    #output = torch.argmax(output, dim=1)
+    # output = torch.argmax(output, dim=1)
     output = np.asarray(output.detach().cpu().numpy())
     target = np.asarray(target.detach().cpu().numpy())
-	# Remove classes from unlabeled pixels in gt image.We should not penalize detections in unlabeled portions 
+    # Remove classes from unlabeled pixels in gt image.We should not penalize detections in unlabeled portions 
     output = output * (target > 0)
-	# Compute area intersection:
+    # Compute area intersection
     intersection = output * (output == target)
-    (area_intersection,_) = np.histogram(intersection, bins=numClass, range=(1, numClass))
-	# Compute area union:
-    (area_pred,_) = np.histogram(output, bins=numClass, range=(1, numClass))
-    (area_lab,_) = np.histogram(target, bins=numClass, range=(1, numClass))
+    (area_intersection, _) = np.histogram(intersection, bins=numClass, range=(1, numClass))
+    # Compute area union
+    (area_pred, _) = np.histogram(output, bins=numClass, range=(1, numClass))
+    (area_lab, _) = np.histogram(target, bins=numClass, range=(1, numClass))
     area_union = area_pred + area_lab - area_intersection
     
     return (area_intersection, area_union)    
@@ -166,8 +164,8 @@ def mean_iou(output: np.array, target: np.array) -> float:
                 and not predicted by `net` are not included to metric calculation        
     """
     n_classes = output.shape[1]
-    # prepare output
-    #output = torch.argmax(output, dim=1)
+    # Prepare output
+    # output = torch.argmax(output, dim=1)
     # Remove classes from unlabeled pixels in gt image
     output = output * (target > 0)
     # convert target to onehot BHWC
@@ -216,9 +214,9 @@ def iou_torch(pred: Tensor, true: Tensor) -> Any:
     c = pred.shape[1]
     # Remove classes from unlabeled pixels in gt image 
     pred = pred * (true > 0)
-    pred = pred.view(-1) # flatten predictions
+    pred = pred.view(-1)  # flatten predictions
     true = true.view(-1)
-    mat = torch.zeros(c, c, dtype=torch.long) # confusion matrix shape
+    mat = torch.zeros(c, c, dtype=torch.long)  # confusion matrix shape
     mat = mat.index_put_((true, pred), torch.tensor(1), accumulate=True)
 
     return mat.diag() / (mat.sum(0) + mat.sum(1) - mat.diag()).clamp(1e-8)

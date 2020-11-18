@@ -1,19 +1,15 @@
 """
 BCE - Jaccard Loss
 
-Adapted from: 
-    Source: https://github.com/BloodAxe/pytorch-toolbelt/blob/develop/pytorch_toolbelt/losses/
+Adapted from:
+    https://github.com/BloodAxe/pytorch-toolbelt/blob/develop/pytorch_toolbelt/losses/
     Author: E. Khvedchenya (BloodAxe)
-    Source: https://github.com/ternaus/robot-surgery-segmentation/blob/master/loss.py
+    and https://github.com/ternaus/robot-surgery-segmentation/blob/master/loss.py
     Author: V.Iglovikov (ternaus)
-    
 """
-from typing import List
-
 import torch
 import torch.nn.functional as F
-from pytorch_toolbelt.utils.torch_utils import to_tensor
-from torch import Tensor, nn
+from torch import Tensor
 from torch.nn import BCEWithLogitsLoss
 from torch.nn.modules.loss import _Loss
 
@@ -105,6 +101,7 @@ def test_loss() -> None:
 
     criterion = BCEWithLogitsLoss(reduction="mean")
     loss_bce = criterion(y_pred, y_true)
+    print(f"BCEWithLogitsLoss {loss_bce}")
 
     criterion = BCEJaccardLoss(bce_weight=1, jaccard_weight=0, log_sigmoid=True)
     loss = criterion(y_pred, y_true)
