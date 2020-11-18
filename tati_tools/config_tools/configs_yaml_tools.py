@@ -12,15 +12,15 @@ def update_dict(d: dict, params: dict) -> dict:
             inner_dict = inner_dict[path_key]
         old_v = inner_dict.get(key)
         inner_dict[key] = v
-        print(f"    ", f"{k} ".ljust(50, '.'), f"{old_v} -> {v}")
+        print(f"    ", f"{k} ".ljust(50, "."), f"{old_v} -> {v}")
     return d
 
 
-def save_config(config: dict, directory: str, filename='config.yml'):
-    """Read config to a file""" 
+def save_config(config: dict, directory: str, filename="config.yml"):
+    """Read config to a file"""
     os.makedirs(directory, exist_ok=True)
     fp = os.path.join(directory, filename)
-    with open(fp, 'w') as f:
+    with open(fp, "w") as f:
         yaml.dump(config, f)
 
 
