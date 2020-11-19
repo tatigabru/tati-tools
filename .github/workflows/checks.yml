@@ -17,7 +17,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
-      uses: actions/setup-python@v1.1.1
+      uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
     - name: Cache pip
@@ -36,14 +36,16 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install black flake8 mypy pytest hypothesis
+        pip install black flake8 mypy pytest
     - name: Run black
       run:
-        black --check .
+        black --check tati_tools
+    - name: Run isort
+      run: isort --check tati_tools
     - name: Run flake8
-      run: flake8
+      run: flake8 tati_tools
     - name: Run Mypy
-      run: mypy tati-tools
+      run: mypy tati_tools
 #    - name: tests
 #      run: |
 #       pip install .[tests]
