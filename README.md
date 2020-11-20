@@ -1,6 +1,6 @@
 # Tati-tools 
 
-This is a set of helper tools for computer vision tasks.
+А set of helper functions for computer vision tasks.
 
 ### Includes
 
