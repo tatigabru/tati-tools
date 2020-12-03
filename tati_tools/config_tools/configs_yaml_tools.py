@@ -14,7 +14,7 @@ def update_dict(d: dict, params: dict) -> dict:
         old_v = inner_dict.get(key)
         inner_dict[key] = v
         print(f"{k} ".ljust(50, "."), f"{old_v} -> {v}")
-        
+
     return d
 
 
